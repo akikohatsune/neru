@@ -146,12 +146,12 @@ class AIChatCog(commands.Cog):
         if not user_calls_miku and not miku_calls_user:
             return prompt
 
-        parts = ["[xung_ho_context]"]
+        parts = ["[call_profile_context]"]
         if user_calls_miku:
-            parts.append(f"user goi Miku la: {user_calls_miku}")
+            parts.append(f"user calls Miku: {user_calls_miku}")
         if miku_calls_user:
-            parts.append(f"Miku goi user la: {miku_calls_user}")
-        parts.append("[noi_dung]")
+            parts.append(f"Miku calls user: {miku_calls_user}")
+        parts.append("[message_content]")
         parts.append(prompt)
         return "\n".join(parts)
 
@@ -172,7 +172,7 @@ class AIChatCog(commands.Cog):
                 continue
             if attachment.size > self.settings.image_max_bytes:
                 raise RuntimeError(
-                    f"Anh '{attachment.filename}' vuot gioi han "
+                    f"Image '{attachment.filename}' exceeds the limit of "
                     f"{self.settings.image_max_bytes} bytes."
                 )
 
@@ -267,7 +267,7 @@ class AIChatCog(commands.Cog):
         target: commands.Context[commands.Bot] | discord.Message,
         exc: Exception,
     ) -> None:
-        message = f"Loi khi goi AI: `{exc}`"
+        message = f"Error while calling AI: `{exc}`"
         if isinstance(target, commands.Context):
             await target.reply(message, mention_author=False)
             return
@@ -302,9 +302,9 @@ class AIChatCog(commands.Cog):
                 guild_id=guild_id,
             )
             if not records:
-                return "Chua co replay chat nao."
+                return "No chat replay logs yet."
 
-            lines: list[str] = ["Replay logs (moi nhat truoc):"]
+            lines: list[str] = ["Replay logs (newest first):"]
             for record_id, item in records:
                 ts = item.get("ts_utc", "?")
                 trigger = item.get("trigger", "?")
@@ -317,7 +317,7 @@ class AIChatCog(commands.Cog):
                     f"[{record_id}] {ts} | {user_display} ({user_id}) | {trigger} | {prompt}"
                 )
             lines.append(
-                f"Dung `{self.settings.command_prefix}replaymiku <id>` de xem chi tiet."
+                f"Use `{self.settings.command_prefix}replaymiku <id>` to view full details."
             )
             return "\n".join(lines)
 
@@ -325,7 +325,7 @@ class AIChatCog(commands.Cog):
             record_id = int(action_value)
         except ValueError as exc:
             raise ValueError(
-                f"Dung: `{self.settings.command_prefix}replaymiku ls` hoac "
+                f"Usage: `{self.settings.command_prefix}replaymiku ls` or "
                 f"`{self.settings.command_prefix}replaymiku <id>`."
             ) from exc
 
@@ -334,9 +334,9 @@ class AIChatCog(commands.Cog):
             guild_id=guild_id,
         )
         if item is None:
-            return f"Khong tim thay replay id `{record_id}`."
+            return f"Replay id `{record_id}` not found."
 
-        prompt = str(item.get("prompt", "(rong)")).strip()
+        prompt = str(item.get("prompt", "(empty)")).strip()
         lines = [
             f"Replay #{record_id}",
             f"Time: {item.get('ts_utc', '?')}",
@@ -368,14 +368,14 @@ class AIChatCog(commands.Cog):
             user_id=ctx.author.id,
         ):
             await ctx.reply(
-                "Ban da bi ban khoi AI bot trong server nay.",
+                "You are banned from using the AI bot in this server.",
                 mention_author=False,
             )
             return
 
         if self.is_terminated:
             await ctx.reply(
-                "Bot dang o che do terminated. Dung `!terminated off` de mo lai.",
+                "Bot is in terminated mode. Use `!terminated off` to enable replies again.",
                 mention_author=False,
             )
             return
@@ -397,7 +397,7 @@ class AIChatCog(commands.Cog):
     async def clear_memo(self, ctx: commands.Context[commands.Bot]) -> None:
         await self.chat_memory.clear_channel(ctx.channel.id)
         await ctx.reply(
-            "Da xoa bo nho ngan han cua channel nay.",
+            "Cleared short-term memory for this channel.",
             mention_author=False,
         )
 
@@ -411,7 +411,7 @@ class AIChatCog(commands.Cog):
         if action in {"on", "1", "true"}:
             self.is_terminated = True
             await ctx.reply(
-                "Da bat terminated: bot se khong tra loi chat/mention.",
+                "Terminated mode enabled: bot will stop replying to chat and mentions.",
                 mention_author=False,
             )
             return
@@ -419,7 +419,7 @@ class AIChatCog(commands.Cog):
         if action in {"off", "0", "false"}:
             self.is_terminated = False
             await ctx.reply(
-                "Da tat terminated: bot co the tra loi lai binh thuong.",
+                "Terminated mode disabled: bot can reply normally again.",
                 mention_author=False,
             )
             return
@@ -433,14 +433,14 @@ class AIChatCog(commands.Cog):
             return
 
         await ctx.reply(
-            "Dung: `!terminated on`, `!terminated off`, hoac `!terminated status`.",
+            "Usage: `!terminated on`, `!terminated off`, or `!terminated status`.",
             mention_author=False,
         )
 
     @commands.command(name="provider")
     async def provider(self, ctx: commands.Context[commands.Bot]) -> None:
         await ctx.reply(
-            f"Provider hien tai: `{self.settings.provider}` | "
+            f"Current provider: `{self.settings.provider}` | "
             f"Model: `{self.settings.gemini_model if self.settings.provider == 'gemini' else self.settings.groq_model}` | "
             f"Approval provider: `gemini` | "
             f"Approval model: `{self.settings.gemini_approval_model}` | "
@@ -460,7 +460,7 @@ class AIChatCog(commands.Cog):
     ) -> None:
         if not await self._is_owner(ctx.author):
             await ctx.reply(
-                "Lenh nay chi chu bot moi duoc dung.",
+                "Only the bot owner can use this command.",
                 mention_author=False,
             )
             return
@@ -484,7 +484,7 @@ class AIChatCog(commands.Cog):
         if replay_id is not None:
             if not await self._is_owner(message.author):
                 await message.reply(
-                    "Lenh nay chi chu bot moi duoc dung.",
+                    "Only the bot owner can use this command.",
                     mention_author=False,
                 )
                 return
@@ -542,7 +542,7 @@ class AIChatCog(commands.Cog):
     ) -> None:
         text = self._sanitize_bot_output(text)
         max_len = 1900
-        chunks = [text[i : i + max_len] for i in range(0, len(text), max_len)] or ["(khong co noi dung)"]
+        chunks = [text[i : i + max_len] for i in range(0, len(text), max_len)] or ["(no content)"]
 
         for idx, chunk in enumerate(chunks):
             if isinstance(target, commands.Context):

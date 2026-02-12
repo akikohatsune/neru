@@ -58,7 +58,7 @@ class LLMClient:
     async def approve_call_name(self, field_name: str, value: str) -> bool:
         raw = await self._approve_call_name_gemini(field_name, value)
         verdict = self._normalize_yes_no(raw)
-        return verdict == "có"
+        return verdict == "yes"
 
     async def _approve_call_name_gemini(self, field_name: str, value: str) -> str:
         if self.approval_gemini_client is None:
@@ -73,7 +73,7 @@ class LLMClient:
                     role="user",
                     parts=[
                         genai_types.Part.from_text(
-                            text=f"Loai xung ho: {field_name}\nNoi dung: {value}"
+                            text=f"Call-name field: {field_name}\nContent: {value}"
                         )
                     ],
                 )
@@ -197,17 +197,16 @@ class LLMClient:
 
     def _normalize_yes_no(self, value: str) -> str | None:
         cleaned = value.strip().lower().strip("`'\".!?[](){} ")
-        if cleaned in {"có", "co"}:
-            return "có"
-        if cleaned in {"ko", "không", "khong", "k"}:
-            return "ko"
+        if cleaned in {"yes", "y"}:
+            return "yes"
+        if cleaned in {"no", "n"}:
+            return "no"
         return None
 
     def _approval_system_instruction(self) -> str:
         return (
-            "Ban la bo kiem duyet ten xung ho trong Discord. "
-            "Chi tra loi dung 1 tu: 'có' hoac 'ko'. "
-            "Tra 'ko' neu noi dung tuc tiu, quay roi, cong kich, "
-            "thuyet phuc thu han, tinh duc, phan biet doi xu, "
-            "hoac khong phu hop de xung ho lich su."
+            "You are a moderator for Discord call-names. "
+            "Reply with exactly one word: 'yes' or 'no'. "
+            "Reply 'no' if the content is insulting, harassing, hateful, sexual, "
+            "discriminatory, or generally not appropriate for respectful addressing."
         )

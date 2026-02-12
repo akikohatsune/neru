@@ -45,7 +45,7 @@ class CallNamesCog(commands.Cog):
             )
         except Exception as exc:
             await ctx.reply(
-                f"Khong the kiem duyet xung ho luc nay: `{exc}`",
+                f"Unable to run call-name approval right now: `{exc}`",
                 mention_author=False,
             )
             return False
@@ -53,10 +53,7 @@ class CallNamesCog(commands.Cog):
         if approved:
             return True
 
-        await ctx.reply(
-            "Ten xung ho khong duoc approval (ket qua: `ko`).",
-            mention_author=False,
-        )
+        await ctx.reply("Call-name was rejected by approval (`no`).", mention_author=False)
         return False
 
     def _normalize_call_name(
@@ -82,10 +79,10 @@ class CallNamesCog(commands.Cog):
         value = self._normalize_call_name(raw_name)
         if value is None:
             if not raw_name.strip():
-                await ctx.reply("Ten khong duoc de trong.", mention_author=False)
+                await ctx.reply("Name cannot be empty.", mention_author=False)
             else:
                 await ctx.reply(
-                    f"Ten qua dai (toi da {self.MAX_CALL_NAME_LENGTH} ky tu).",
+                    f"Name is too long (max {self.MAX_CALL_NAME_LENGTH} characters).",
                     mention_author=False,
                 )
             return
@@ -109,7 +106,7 @@ class CallNamesCog(commands.Cog):
 
     @commands.hybrid_command(
         name="ucallmiku",
-        aliases=["goimiku", "callmiku"],
+        aliases=["callmiku"],
         with_app_command=True,
         description="Set how you call Miku",
     )
@@ -123,13 +120,13 @@ class CallNamesCog(commands.Cog):
             ctx,
             raw_name=name,
             field_name="user_calls_miku",
-            success_message="Da luu: ban goi Miku la `{value}`.",
+            success_message="Saved: you call Miku `{value}`.",
             saver=self.store.set_user_calls_miku,
         )
 
     @commands.hybrid_command(
         name="mikucallu",
-        aliases=["mikugoiban", "callme"],
+        aliases=["callme"],
         with_app_command=True,
         description="Set how Miku calls you",
     )
@@ -143,13 +140,13 @@ class CallNamesCog(commands.Cog):
             ctx,
             raw_name=name,
             field_name="miku_calls_user",
-            success_message="Da luu: Miku se goi ban la `{value}`.",
+            success_message="Saved: Miku will call you `{value}`.",
             saver=self.store.set_miku_calls_user,
         )
 
     @commands.hybrid_command(
         name="mikumention",
-        aliases=["xungho", "callprofile"],
+        aliases=["callprofile"],
         with_app_command=True,
         description="Show your call-name profile with Miku",
     )
@@ -159,9 +156,9 @@ class CallNamesCog(commands.Cog):
             user_id=ctx.author.id,
         )
         await ctx.reply(
-            "Xung ho hien tai | "
-            f"Ban goi Miku: `{user_calls_miku or 'Miku'}` | "
-            f"Miku goi ban: `{miku_calls_user or ctx.author.display_name}`",
+            "Current call profile | "
+            f"You call Miku: `{user_calls_miku or 'Miku'}` | "
+            f"Miku calls you: `{miku_calls_user or ctx.author.display_name}`",
             mention_author=False,
         )
 

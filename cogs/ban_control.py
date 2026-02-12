@@ -24,27 +24,18 @@ class BanControlCog(commands.Cog):
     async def cog_unload(self) -> None:
         await self.store.close()
 
-    def _can_manage(self, ctx: commands.Context[commands.Bot]) -> bool:
-        if ctx.guild is None:
-            return False
-        author = ctx.author
-        if not isinstance(author, discord.Member):
-            return False
-        perms = author.guild_permissions
-        return perms.administrator or perms.manage_guild
-
-    async def _ensure_manage_permission(
+    async def _ensure_owner_permission(
         self,
         ctx: commands.Context[commands.Bot],
     ) -> bool:
         if ctx.guild is None:
-            await ctx.reply("Lenh nay chi dung duoc trong server.", mention_author=False)
+            await ctx.reply("This command can only be used in a server.", mention_author=False)
             return False
 
-        if self._can_manage(ctx):
+        if await self.bot.is_owner(ctx.author):
             return True
 
-        await ctx.reply("Ban khong co quyen dung lenh nay.", mention_author=False)
+        await ctx.reply("Only the bot owner can use this command.", mention_author=False)
         return False
 
     @commands.hybrid_command(
@@ -59,11 +50,11 @@ class BanControlCog(commands.Cog):
         *,
         reason: str | None = None,
     ) -> None:
-        if not await self._ensure_manage_permission(ctx):
+        if not await self._ensure_owner_permission(ctx):
             return
 
         if member.bot:
-            await ctx.reply("Khong the ban tai khoan bot.", mention_author=False)
+            await ctx.reply("You cannot ban a bot account.", mention_author=False)
             return
 
         guild = cast(discord.Guild, ctx.guild)
@@ -76,13 +67,13 @@ class BanControlCog(commands.Cog):
 
         if created:
             await ctx.reply(
-                f"Da ban {member.mention} khoi AI bot.",
+                f"Banned {member.mention} from using the AI bot.",
                 mention_author=False,
             )
             return
 
         await ctx.reply(
-            f"Da cap nhat ban cho {member.mention}.",
+            f"Updated ban entry for {member.mention}.",
             mention_author=False,
         )
 
@@ -96,20 +87,20 @@ class BanControlCog(commands.Cog):
         ctx: commands.Context[commands.Bot],
         member: discord.Member,
     ) -> None:
-        if not await self._ensure_manage_permission(ctx):
+        if not await self._ensure_owner_permission(ctx):
             return
 
         guild = cast(discord.Guild, ctx.guild)
         removed = await self.store.unban_user(guild.id, member.id)
         if removed:
             await ctx.reply(
-                f"Da go ban {member.mention} khoi AI bot.",
+                f"Removed AI-bot ban for {member.mention}.",
                 mention_author=False,
             )
             return
 
         await ctx.reply(
-            f"{member.mention} hien khong nam trong danh sach ban.",
+            f"{member.mention} is not currently in the ban list.",
             mention_author=False,
         )
 

@@ -83,7 +83,7 @@ Memory and runtime:
 - `!terminated on|off|status`
 - `!provider`
 
-Ban control:
+Ban control (bot owner only):
 - `!ban @user [reason]`
 - `!removeban @user`
 - `/ban`, `/removeban`
@@ -103,8 +103,8 @@ Replay logger (bot owner only):
 `ucallmiku` and `mikucallu` are moderated by a separate approval check.
 - Approval always uses Gemini.
 - Approval model comes from `GEMINI_APPROVAL_MODEL`.
-- Approval model must return only `có` (yes) or `ko` (no).
-- The name is saved only when the result is `có` (yes).
+- Approval model must return only `yes` or `no`.
+- The name is saved only when the result is `yes`.
 
 ## 6) System Rules JSON
 
