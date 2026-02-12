@@ -17,13 +17,12 @@ class Settings:
     discord_token: str
     command_prefix: str
     provider: str
-    approval_provider: str
     gemini_api_key: str | None
+    approval_gemini_api_key: str | None
     gemini_model: str
     gemini_approval_model: str
     groq_api_key: str | None
     groq_model: str
-    groq_approval_model: str
     system_prompt: str
     system_rules_json: str
     chat_replay_log_path: str
@@ -96,9 +95,6 @@ def get_settings() -> Settings:
     provider = _get_env_str("LLM_PROVIDER", "gemini").lower()
     if provider not in {"gemini", "groq"}:
         raise ValueError("LLM_PROVIDER must be either 'gemini' or 'groq'.")
-    approval_provider = _get_env_str("APPROVAL_PROVIDER", "gemini").lower()
-    if approval_provider not in {"gemini", "groq"}:
-        raise ValueError("APPROVAL_PROVIDER must be either 'gemini' or 'groq'.")
 
     discord_token = _get_env_str("DISCORD_TOKEN", "")
     if not discord_token:
@@ -120,9 +116,10 @@ def get_settings() -> Settings:
         REQUIRED_GEMINI_MODEL,
     )
     groq_model = _get_env_str("GROQ_MODEL", "llama-3.3-70b-versatile")
-    groq_approval_model = _get_env_str(
-        "GROQ_APPROVAL_MODEL",
-        groq_model,
+    gemini_api_key = _get_env_str("GEMINI_API_KEY", "") or None
+    groq_api_key = _get_env_str("GROQ_API_KEY", "") or None
+    approval_gemini_api_key = (
+        _get_env_str("APPROVAL_GEMINI_API_KEY", "") or gemini_api_key
     )
 
     if gemini_model != REQUIRED_GEMINI_MODEL:
@@ -134,18 +131,26 @@ def get_settings() -> Settings:
             "GEMINI_APPROVAL_MODEL must be "
             f"'{REQUIRED_GEMINI_MODEL}', got: {gemini_approval_model}"
         )
+    if provider == "gemini" and not gemini_api_key:
+        raise ValueError("Missing GEMINI_API_KEY for LLM_PROVIDER=gemini.")
+    if provider == "groq" and not groq_api_key:
+        raise ValueError("Missing GROQ_API_KEY for LLM_PROVIDER=groq.")
+    if not approval_gemini_api_key:
+        raise ValueError(
+            "Missing approval Gemini API key. Set APPROVAL_GEMINI_API_KEY "
+            "or GEMINI_API_KEY."
+        )
 
     return Settings(
         discord_token=discord_token,
         command_prefix=_get_env_str("COMMAND_PREFIX", "!"),
         provider=provider,
-        approval_provider=approval_provider,
-        gemini_api_key=_get_env_str("GEMINI_API_KEY", "") or None,
+        gemini_api_key=gemini_api_key,
+        approval_gemini_api_key=approval_gemini_api_key,
         gemini_model=gemini_model,
         gemini_approval_model=gemini_approval_model,
-        groq_api_key=_get_env_str("GROQ_API_KEY", "") or None,
+        groq_api_key=groq_api_key,
         groq_model=groq_model,
-        groq_approval_model=groq_approval_model,
         system_prompt=full_system_prompt,
         system_rules_json=system_rules_json,
         chat_replay_log_path=_get_env_str(

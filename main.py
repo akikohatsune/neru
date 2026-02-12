@@ -36,8 +36,8 @@ class MikuAIBot(commands.Bot):
         user_id = user.id if user else "unknown"
         print(f"Logged in as {user} (ID: {user_id})")
         print(f"Provider: {self.settings.provider}")
-        print(f"Approval provider: {self.settings.approval_provider}")
-        print(f"Gemini approval model: {self.settings.gemini_approval_model}")
+        print("Approval provider: gemini (fixed)")
+        print(f"Approval model: {self.settings.gemini_approval_model}")
         print(f"System rules JSON: {self.settings.system_rules_json}")
         print(f"Chat replay log: {self.settings.chat_replay_log_path}")
         print(f"Chat memory DB: {self.settings.chat_memory_db_path}")

@@ -442,8 +442,8 @@ class AIChatCog(commands.Cog):
         await ctx.reply(
             f"Provider hien tai: `{self.settings.provider}` | "
             f"Model: `{self.settings.gemini_model if self.settings.provider == 'gemini' else self.settings.groq_model}` | "
-            f"Approval provider: `{self.settings.approval_provider}` | "
-            f"Approval model: `{self.settings.gemini_approval_model if self.settings.approval_provider == 'gemini' else self.settings.groq_approval_model}` | "
+            f"Approval provider: `gemini` | "
+            f"Approval model: `{self.settings.gemini_approval_model}` | "
             f"Chat DB: `{self.settings.chat_memory_db_path}` | "
             f"Ban DB: `{self.settings.ban_db_path}` | "
             f"Callnames DB: `{self.settings.callnames_db_path}` | "
