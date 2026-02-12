@@ -1,4 +1,9 @@
-# MikuMaid_reborn
+<p align="center">
+  <img src="miku.jpg" alt="MikuMaintaining" width="500">
+</p>
+<p align="center"><span style="color:#8a8f98;">"39!"</span></p>
+
+<h1 align="center">MikuMaid_reborn</h1> 
 
 **MikuMaid_reborn** is my rewrite/replacement for a legacy API I used in earlier versions.  
 This project focuses on:
