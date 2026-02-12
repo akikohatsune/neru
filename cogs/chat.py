@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import mimetypes
 import re
 from typing import cast
@@ -118,7 +119,8 @@ class AIChatCog(commands.Cog):
             user_message,
         ]
 
-        reply = await self.client.generate(llm_messages)
+        raw_reply = await self.client.generate(llm_messages)
+        reply = self._normalize_model_reply(raw_reply)
 
         await self.chat_memory.append_message(
             channel_id,
@@ -558,6 +560,37 @@ class AIChatCog(commands.Cog):
         text = self.EVERYONE_MENTION_PATTERN.sub("@\u200beveryone", text)
         text = self.HERE_MENTION_PATTERN.sub("@\u200bhere", text)
         return text
+
+    def _normalize_model_reply(self, text: str) -> str:
+        answer = self._extract_answer_from_structured_output(text)
+        if answer is None:
+            return text
+        return answer
+
+    def _extract_answer_from_structured_output(self, text: str) -> str | None:
+        stripped = text.strip()
+        if not stripped:
+            return None
+
+        # Accept JSON directly or wrapped in ```json ... ``` fences.
+        fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", stripped, flags=re.DOTALL)
+        candidate = fenced.group(1).strip() if fenced else stripped
+
+        decoder = json.JSONDecoder()
+        for idx, char in enumerate(candidate):
+            if char != "{":
+                continue
+            try:
+                data, _ = decoder.raw_decode(candidate[idx:])
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(data, dict):
+                continue
+            answer = data.get("answer")
+            if isinstance(answer, str) and answer.strip():
+                return answer.strip()
+
+        return None
 
 
 async def setup(bot: commands.Bot) -> None:
