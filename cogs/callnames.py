@@ -111,7 +111,7 @@ class CallNamesCog(commands.Cog):
         name="ucallmiku",
         aliases=["goimiku", "callmiku"],
         with_app_command=True,
-        description="Dat cach ban goi Miku",
+        description="Set how you call Miku",
     )
     async def set_user_calls_miku(
         self,
@@ -131,7 +131,7 @@ class CallNamesCog(commands.Cog):
         name="mikucallu",
         aliases=["mikugoiban", "callme"],
         with_app_command=True,
-        description="Dat cach Miku goi ban",
+        description="Set how Miku calls you",
     )
     async def set_miku_calls_user(
         self,
@@ -151,7 +151,7 @@ class CallNamesCog(commands.Cog):
         name="mikumention",
         aliases=["xungho", "callprofile"],
         with_app_command=True,
-        description="Xem cach xung ho giua ban va Miku",
+        description="Show your call-name profile with Miku",
     )
     async def show_call_profile(self, ctx: commands.Context[commands.Bot]) -> None:
         user_calls_miku, miku_calls_user = await self.store.get_user_call_preferences(

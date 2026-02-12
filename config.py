@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-REQUIRED_GEMINI_MODEL = "gemini-3-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3-flash"
+DEFAULT_GEMINI_APPROVAL_MODEL = "gemini-3-flash"
 
 
 @dataclass(slots=True)
@@ -110,10 +111,10 @@ def get_settings() -> Settings:
         f"{base_system_prompt}\n\n{rules_prompt}" if rules_prompt else base_system_prompt
     )
     legacy_memory_db_path = _get_env_str("MEMORY_DB_PATH", "chat_memory.db")
-    gemini_model = _get_env_str("GEMINI_MODEL", REQUIRED_GEMINI_MODEL)
+    gemini_model = _get_env_str("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
     gemini_approval_model = _get_env_str(
         "GEMINI_APPROVAL_MODEL",
-        REQUIRED_GEMINI_MODEL,
+        DEFAULT_GEMINI_APPROVAL_MODEL,
     )
     groq_model = _get_env_str("GROQ_MODEL", "llama-3.3-70b-versatile")
     gemini_api_key = _get_env_str("GEMINI_API_KEY", "") or None
@@ -122,15 +123,8 @@ def get_settings() -> Settings:
         _get_env_str("APPROVAL_GEMINI_API_KEY", "") or gemini_api_key
     )
 
-    if gemini_model != REQUIRED_GEMINI_MODEL:
-        raise ValueError(
-            f"GEMINI_MODEL must be '{REQUIRED_GEMINI_MODEL}', got: {gemini_model}"
-        )
-    if gemini_approval_model != REQUIRED_GEMINI_MODEL:
-        raise ValueError(
-            "GEMINI_APPROVAL_MODEL must be "
-            f"'{REQUIRED_GEMINI_MODEL}', got: {gemini_approval_model}"
-        )
+    if not gemini_approval_model:
+        raise ValueError("GEMINI_APPROVAL_MODEL cannot be empty.")
     if provider == "gemini" and not gemini_api_key:
         raise ValueError("Missing GEMINI_API_KEY for LLM_PROVIDER=gemini.")
     if provider == "groq" and not groq_api_key:

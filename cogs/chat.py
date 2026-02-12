@@ -354,7 +354,7 @@ class AIChatCog(commands.Cog):
         name="chat",
         aliases=["ask"],
         with_app_command=True,
-        description="Chat voi AI bot",
+        description="Chat with the AI bot",
     )
     async def chat(
         self,

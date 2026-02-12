@@ -47,8 +47,8 @@ Edit `.env`:
 - `LLM_PROVIDER`: `gemini` or `groq`
 - `GEMINI_API_KEY`: required when `LLM_PROVIDER=gemini`
 - `APPROVAL_GEMINI_API_KEY`: optional dedicated key for call-name approval (fallback: `GEMINI_API_KEY`)
-- `GEMINI_MODEL`: must be `gemini-3-flash`
-- `GEMINI_APPROVAL_MODEL`: must be `gemini-3-flash`
+- `GEMINI_MODEL`: Gemini model for chat (customizable, default `gemini-3-flash`)
+- `GEMINI_APPROVAL_MODEL`: Gemini model for call-name approval (customizable, default `gemini-3-flash`)
 - `GROQ_API_KEY`: required when `LLM_PROVIDER=groq`
 - `GROQ_MODEL`: Groq model name
 - `SYSTEM_PROMPT`: default Miku personality/instructions
@@ -102,6 +102,7 @@ Replay logger (bot owner only):
 
 `ucallmiku` and `mikucallu` are moderated by a separate approval check.
 - Approval always uses Gemini.
+- Approval model comes from `GEMINI_APPROVAL_MODEL`.
 - Approval model must return only `có` (yes) or `ko` (no).
 - The name is saved only when the result is `có` (yes).
 

@@ -47,7 +47,11 @@ class BanControlCog(commands.Cog):
         await ctx.reply("Ban khong co quyen dung lenh nay.", mention_author=False)
         return False
 
-    @commands.hybrid_command(name="ban", with_app_command=True, description="Ban user khoi AI bot")
+    @commands.hybrid_command(
+        name="ban",
+        with_app_command=True,
+        description="Ban a user from using the AI bot",
+    )
     async def ban_user(
         self,
         ctx: commands.Context[commands.Bot],
@@ -85,7 +89,7 @@ class BanControlCog(commands.Cog):
     @commands.hybrid_command(
         name="removeban",
         with_app_command=True,
-        description="Go ban user khoi AI bot",
+        description="Remove AI-bot ban from a user",
     )
     async def remove_ban(
         self,
