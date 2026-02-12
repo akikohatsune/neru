@@ -44,6 +44,11 @@ cp .env.example .env
 
 Edit `.env`:
 - `DISCORD_TOKEN`: Discord bot token
+- `RPC_ENABLED`: enable/disable Discord RPC presence (`true`/`false`)
+- `RPC_STATUS`: `online`, `idle`, `dnd`, or `invisible`
+- `RPC_ACTIVITY_TYPE`: `none`, `playing`, `listening`, `watching`, `competing`, or `streaming`
+- `RPC_ACTIVITY_NAME`: activity text shown in Discord presence
+- `RPC_ACTIVITY_URL`: required only when `RPC_ACTIVITY_TYPE=streaming`
 - `LLM_PROVIDER`: `gemini` or `groq`
 - `GEMINI_API_KEY`: required when `LLM_PROVIDER=gemini`
 - `APPROVAL_GEMINI_API_KEY`: optional dedicated key for call-name approval (fallback: `GEMINI_API_KEY`)
@@ -138,6 +143,15 @@ Recommended bot permissions:
 - Read Messages / View Channels
 - Send Messages
 - Read Message History
+
+## 10) Discord RPC Presence
+
+The bot applies RPC presence on startup (`on_ready`) using:
+- `RPC_ENABLED`
+- `RPC_STATUS`
+- `RPC_ACTIVITY_TYPE`
+- `RPC_ACTIVITY_NAME`
+- `RPC_ACTIVITY_URL` (streaming only)
 
 ## License
 MIT License — see `LICENSE` for details.

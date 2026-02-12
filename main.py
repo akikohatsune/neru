@@ -22,6 +22,49 @@ class MikuAIBot(commands.Bot):
         )
         self.settings = settings
 
+    def _resolve_rpc_status(self) -> discord.Status:
+        status_map = {
+            "online": discord.Status.online,
+            "idle": discord.Status.idle,
+            "dnd": discord.Status.dnd,
+            "invisible": discord.Status.invisible,
+        }
+        return status_map.get(self.settings.rpc_status, discord.Status.online)
+
+    def _build_rpc_activity(self) -> discord.BaseActivity | None:
+        activity_type = self.settings.rpc_activity_type
+        name = self.settings.rpc_activity_name
+        if activity_type == "none":
+            return None
+        if activity_type == "playing":
+            return discord.Game(name=name)
+        if activity_type == "streaming":
+            return discord.Streaming(name=name, url=self.settings.rpc_activity_url or "")
+
+        discord_activity_map = {
+            "listening": discord.ActivityType.listening,
+            "watching": discord.ActivityType.watching,
+            "competing": discord.ActivityType.competing,
+        }
+        mapped = discord_activity_map.get(activity_type, discord.ActivityType.playing)
+        return discord.Activity(type=mapped, name=name)
+
+    async def _apply_rpc_presence(self) -> None:
+        if not self.settings.rpc_enabled:
+            print("Discord RPC presence: disabled")
+            return
+        status = self._resolve_rpc_status()
+        activity = self._build_rpc_activity()
+        await self.change_presence(status=status, activity=activity)
+        activity_type = self.settings.rpc_activity_type
+        activity_name = self.settings.rpc_activity_name if activity else "(none)"
+        print(
+            "Discord RPC presence applied: "
+            f"status={self.settings.rpc_status}, "
+            f"type={activity_type}, "
+            f"name={activity_name}"
+        )
+
     async def setup_hook(self) -> None:
         cogs_dir = Path(__file__).parent / "cogs"
         for file in sorted(cogs_dir.glob("*.py")):
@@ -32,6 +75,7 @@ class MikuAIBot(commands.Bot):
         print(f"Synced {len(synced)} slash command(s).")
 
     async def on_ready(self) -> None:
+        await self._apply_rpc_presence()
         user = self.user
         user_id = user.id if user else "unknown"
         print(f"Logged in as {user} (ID: {user_id})")

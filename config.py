@@ -17,6 +17,11 @@ DEFAULT_GEMINI_APPROVAL_MODEL = "gemini-3-flash"
 class Settings:
     discord_token: str
     command_prefix: str
+    rpc_enabled: bool
+    rpc_status: str
+    rpc_activity_type: str
+    rpc_activity_name: str
+    rpc_activity_url: str | None
     provider: str
     gemini_api_key: str | None
     approval_gemini_api_key: str | None
@@ -61,6 +66,15 @@ def _get_env_float(name: str, default: float) -> float:
         return float((raw or "").strip())
     except ValueError as exc:
         raise ValueError(f"{name} must be a float, got: {raw!r}") from exc
+
+
+def _get_env_bool(name: str, default: bool) -> bool:
+    raw = _get_env_str(name, "true" if default else "false").lower()
+    if raw in {"1", "true", "yes", "on"}:
+        return True
+    if raw in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be a boolean (true/false), got: {raw!r}")
 
 
 def _load_system_rules_prompt(path_value: str) -> str:
@@ -135,9 +149,41 @@ def get_settings() -> Settings:
             "or GEMINI_API_KEY."
         )
 
+    rpc_enabled = _get_env_bool("RPC_ENABLED", True)
+    rpc_status = _get_env_str("RPC_STATUS", "online").lower()
+    rpc_activity_type = _get_env_str("RPC_ACTIVITY_TYPE", "playing").lower()
+    rpc_activity_name = _get_env_str("RPC_ACTIVITY_NAME", "with AI chats")
+    rpc_activity_url = _get_env_str("RPC_ACTIVITY_URL", "") or None
+
+    if rpc_status not in {"online", "idle", "dnd", "invisible"}:
+        raise ValueError(
+            "RPC_STATUS must be one of: online, idle, dnd, invisible."
+        )
+    if rpc_activity_type not in {
+        "none",
+        "playing",
+        "listening",
+        "watching",
+        "competing",
+        "streaming",
+    }:
+        raise ValueError(
+            "RPC_ACTIVITY_TYPE must be one of: "
+            "none, playing, listening, watching, competing, streaming."
+        )
+    if rpc_activity_type != "none" and not rpc_activity_name:
+        raise ValueError("RPC_ACTIVITY_NAME cannot be empty when RPC_ACTIVITY_TYPE is set.")
+    if rpc_activity_type == "streaming" and not rpc_activity_url:
+        raise ValueError("RPC_ACTIVITY_URL is required when RPC_ACTIVITY_TYPE=streaming.")
+
     return Settings(
         discord_token=discord_token,
         command_prefix=_get_env_str("COMMAND_PREFIX", "!"),
+        rpc_enabled=rpc_enabled,
+        rpc_status=rpc_status,
+        rpc_activity_type=rpc_activity_type,
+        rpc_activity_name=rpc_activity_name,
+        rpc_activity_url=rpc_activity_url,
         provider=provider,
         gemini_api_key=gemini_api_key,
         approval_gemini_api_key=approval_gemini_api_key,
