@@ -1,6 +1,10 @@
-# Discord AI Chat Bot (Cogs System)
+# MikuMaid_reborn
 
-A Discord AI chat bot built with a modular cogs architecture.
+**MikuMaid_reborn** is my rewrite/replacement for a legacy API I used in earlier versions.  
+This project focuses on:
+- reducing technical debt and improving maintainability
+- providing a consistent, well-defined API surface
+- making future features easier to ship without breaking existing behavior
 
 Supported providers:
 - Gemini
