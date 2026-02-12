@@ -17,8 +17,8 @@ from memory_store import ShortTermMemoryStore
 
 class AIChatCog(commands.Cog):
     CLEANUP_INTERVAL_SECONDS = 60
-    DEFAULT_PROMPT = "Please answer briefly in a playful and friendly tone."
-    DEFAULT_MENTION_PROMPT = "Please introduce yourself briefly in a playful style."
+    DEFAULT_PROMPT = "hi"
+    DEFAULT_MENTION_PROMPT = "hi"
     SUPPORTED_PREFIX_COMMANDS = {"chat", "ask"}
     EVERYONE_MENTION_PATTERN = re.compile(r"@everyone", flags=re.IGNORECASE)
     HERE_MENTION_PATTERN = re.compile(r"@here", flags=re.IGNORECASE)
