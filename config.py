@@ -17,11 +17,13 @@ class Settings:
     discord_token: str
     command_prefix: str
     provider: str
+    approval_provider: str
     gemini_api_key: str | None
     gemini_model: str
     gemini_approval_model: str
     groq_api_key: str | None
     groq_model: str
+    groq_approval_model: str
     system_prompt: str
     system_rules_json: str
     chat_replay_log_path: str
@@ -94,6 +96,9 @@ def get_settings() -> Settings:
     provider = _get_env_str("LLM_PROVIDER", "gemini").lower()
     if provider not in {"gemini", "groq"}:
         raise ValueError("LLM_PROVIDER must be either 'gemini' or 'groq'.")
+    approval_provider = _get_env_str("APPROVAL_PROVIDER", "gemini").lower()
+    if approval_provider not in {"gemini", "groq"}:
+        raise ValueError("APPROVAL_PROVIDER must be either 'gemini' or 'groq'.")
 
     discord_token = _get_env_str("DISCORD_TOKEN", "")
     if not discord_token:
@@ -114,6 +119,11 @@ def get_settings() -> Settings:
         "GEMINI_APPROVAL_MODEL",
         REQUIRED_GEMINI_MODEL,
     )
+    groq_model = _get_env_str("GROQ_MODEL", "llama-3.3-70b-versatile")
+    groq_approval_model = _get_env_str(
+        "GROQ_APPROVAL_MODEL",
+        groq_model,
+    )
 
     if gemini_model != REQUIRED_GEMINI_MODEL:
         raise ValueError(
@@ -129,11 +139,13 @@ def get_settings() -> Settings:
         discord_token=discord_token,
         command_prefix=_get_env_str("COMMAND_PREFIX", "!"),
         provider=provider,
+        approval_provider=approval_provider,
         gemini_api_key=_get_env_str("GEMINI_API_KEY", "") or None,
         gemini_model=gemini_model,
         gemini_approval_model=gemini_approval_model,
         groq_api_key=_get_env_str("GROQ_API_KEY", "") or None,
-        groq_model=_get_env_str("GROQ_MODEL", "llama-3.3-70b-versatile"),
+        groq_model=groq_model,
+        groq_approval_model=groq_approval_model,
         system_prompt=full_system_prompt,
         system_rules_json=system_rules_json,
         chat_replay_log_path=_get_env_str(

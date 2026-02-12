@@ -38,11 +38,13 @@ cp .env.example .env
 Edit `.env`:
 - `DISCORD_TOKEN`: Discord bot token
 - `LLM_PROVIDER`: `gemini` or `groq`
-- `GEMINI_API_KEY`: required for Gemini and call-name approval
+- `APPROVAL_PROVIDER`: separate provider for call-name approval (`gemini` or `groq`)
+- `GEMINI_API_KEY`: required when `LLM_PROVIDER=gemini` or `APPROVAL_PROVIDER=gemini`
 - `GEMINI_MODEL`: must be `gemini-3-flash`
 - `GEMINI_APPROVAL_MODEL`: must be `gemini-3-flash`
-- `GROQ_API_KEY`: required if using Groq
+- `GROQ_API_KEY`: required when `LLM_PROVIDER=groq` or `APPROVAL_PROVIDER=groq`
 - `GROQ_MODEL`: Groq model name
+- `GROQ_APPROVAL_MODEL`: model used when `APPROVAL_PROVIDER=groq`
 - `SYSTEM_PROMPT`: default Miku personality/instructions
 - `SYSTEM_RULES_JSON`: JSON file for extra system rules
 - `CHAT_REPLAY_LOG_PATH`: replay log file path (default `logger/chat_replay.jsonl`)
@@ -92,8 +94,9 @@ Replay logger (bot owner only):
 
 ## 5) Call-Name Approval
 
-`ucallmiku` and `mikucallu` are moderated by a second Gemini check.
-- Approval model returns only `có` (yes) or `ko` (no).
+`ucallmiku` and `mikucallu` are moderated by a separate approval check.
+- Approval provider is independent from main chat provider (`APPROVAL_PROVIDER`).
+- Approval model must return only `có` (yes) or `ko` (no).
 - The name is saved only when the result is `có` (yes).
 
 ## 6) System Rules JSON

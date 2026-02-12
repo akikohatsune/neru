@@ -36,6 +36,20 @@ class LLMClient:
         return await handler(messages)
 
     async def approve_call_name(self, field_name: str, value: str) -> bool:
+        handlers: dict[str, Callable[[str, str], Awaitable[str]]] = {
+            "gemini": self._approve_call_name_gemini,
+            "groq": self._approve_call_name_groq,
+        }
+        handler = handlers.get(self.settings.approval_provider)
+        if handler is None:
+            raise RuntimeError(
+                f"Unsupported approval provider: {self.settings.approval_provider}"
+            )
+        raw = await handler(field_name, value)
+        verdict = self._normalize_yes_no(raw)
+        return verdict == "có"
+
+    async def _approve_call_name_gemini(self, field_name: str, value: str) -> str:
         if not self.settings.gemini_api_key:
             raise RuntimeError("Missing GEMINI_API_KEY for approval model")
 
@@ -64,13 +78,7 @@ class LLMClient:
             "system_instruction": {
                 "parts": [
                     {
-                        "text": (
-                            "Ban la bo kiem duyet ten xung ho trong Discord. "
-                            "Chi tra loi dung 1 tu: 'có' hoac 'ko'. "
-                            "Tra 'ko' neu noi dung tuc tiu, quay roi, cong kich, "
-                            "thuyet phuc thu han, tinh duc, phan biet doi xu, "
-                            "hoac khong phu hop de xung ho lich su."
-                        )
+                        "text": self._approval_system_instruction()
                     }
                 ]
             },
@@ -83,9 +91,40 @@ class LLMClient:
             raw = data["candidates"][0]["content"]["parts"][0]["text"]
         except (KeyError, IndexError, TypeError) as exc:
             raise RuntimeError(f"Invalid Gemini approval response: {data}") from exc
+        return raw
 
-        verdict = self._normalize_yes_no(raw)
-        return verdict == "có"
+    async def _approve_call_name_groq(self, field_name: str, value: str) -> str:
+        if not self.settings.groq_api_key:
+            raise RuntimeError("Missing GROQ_API_KEY for approval provider")
+
+        endpoint = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.settings.groq_api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": self.settings.groq_approval_model,
+            "temperature": 0,
+            "messages": [
+                {"role": "system", "content": self._approval_system_instruction()},
+                {
+                    "role": "user",
+                    "content": f"Loai xung ho: {field_name}\nNoi dung: {value}",
+                },
+            ],
+        }
+
+        status_code, data = await self._post_json(
+            endpoint,
+            payload=payload,
+            headers=headers,
+        )
+        self._raise_if_error("GroqApproval", status_code, data)
+        try:
+            raw = data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise RuntimeError(f"Invalid Groq approval response: {data}") from exc
+        return raw
 
     async def _call_gemini(self, messages: list[ChatMessage]) -> str:
         if not self.settings.gemini_api_key:
@@ -231,3 +270,12 @@ class LLMClient:
         if cleaned in {"ko", "không", "khong", "k"}:
             return "ko"
         return None
+
+    def _approval_system_instruction(self) -> str:
+        return (
+            "Ban la bo kiem duyet ten xung ho trong Discord. "
+            "Chi tra loi dung 1 tu: 'có' hoac 'ko'. "
+            "Tra 'ko' neu noi dung tuc tiu, quay roi, cong kich, "
+            "thuyet phuc thu han, tinh duc, phan biet doi xu, "
+            "hoac khong phu hop de xung ho lich su."
+        )
