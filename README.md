@@ -157,4 +157,5 @@ The bot applies RPC presence on startup (`on_ready`) using:
 
 ## License
 MIT License — see `LICENSE` for details.
+
 Art by [gomya0_0](https://x.com/gomya0_0)
