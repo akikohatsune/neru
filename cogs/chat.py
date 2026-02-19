@@ -449,6 +449,7 @@ class AIChatCog(commands.Cog):
             f"Callnames DB: `{self.settings.callnames_db_path}` | "
             f"Idle TTL: `{self.settings.memory_idle_ttl_seconds}s` | "
             f"Image limit: `{self.settings.image_max_bytes}` bytes | "
+            f"Reply chunk size: `{self.settings.max_reply_chars}` chars | "
             f"Terminated: `{self.is_terminated}`"
         )
 
@@ -541,7 +542,7 @@ class AIChatCog(commands.Cog):
         text: str,
     ) -> None:
         text = self._sanitize_bot_output(text)
-        max_len = 1900
+        max_len = min(1900, self.settings.max_reply_chars)
         chunks = [text[i : i + max_len] for i in range(0, len(text), max_len)] or ["(no content)"]
 
         for idx, chunk in enumerate(chunks):
@@ -563,9 +564,44 @@ class AIChatCog(commands.Cog):
 
     def _normalize_model_reply(self, text: str) -> str:
         answer = self._extract_answer_from_structured_output(text)
-        if answer is None:
+        normalized = answer if answer is not None else text
+        return self._latex_to_plain_math(normalized)
+
+    def _latex_to_plain_math(self, text: str) -> str:
+        if not text.strip():
             return text
-        return answer
+        if not re.search(r"(?:\$\$|\$|\\\(|\\\)|\\\[|\\\]|\\[a-zA-Z]+)", text):
+            return text
+
+        out = text
+        out = out.replace("\\left", "").replace("\\right", "")
+        out = out.replace("\\times", "*").replace("\\cdot", "*")
+        out = out.replace("\\div", "/")
+        out = out.replace("\\pm", "+/-")
+        out = out.replace("\\neq", "!=")
+        out = out.replace("\\leq", "<=").replace("\\geq", ">=")
+        out = out.replace("\\approx", "~=")
+        out = out.replace("\\pi", "pi")
+
+        # Handle common LaTeX math forms while avoiding heavy parsing.
+        for _ in range(5):
+            updated = re.sub(r"\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}", r"(\1)/(\2)", out)
+            if updated == out:
+                break
+            out = updated
+        for _ in range(5):
+            updated = re.sub(r"\\sqrt\s*\{([^{}]+)\}", r"sqrt(\1)", out)
+            if updated == out:
+                break
+            out = updated
+
+        out = re.sub(r"\\text\s*\{([^{}]+)\}", r"\1", out)
+        out = re.sub(r"\\(?:quad|qquad|,|;|!)(?![a-zA-Z])", " ", out)
+        out = out.replace("\\(", "").replace("\\)", "")
+        out = out.replace("\\[", "").replace("\\]", "")
+        out = out.replace("$$", "").replace("$", "")
+        out = re.sub(r"\s{2,}", " ", out)
+        return out.strip()
 
     def _extract_answer_from_structured_output(self, text: str) -> str | None:
         stripped = text.strip()

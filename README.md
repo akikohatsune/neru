@@ -65,6 +65,7 @@ Edit `.env`:
 - `MEMORY_DB_PATH`: legacy fallback for `CHAT_MEMORY_DB_PATH`
 - `MEMORY_IDLE_TTL_SECONDS`: auto-clear idle short-term memory
 - `IMAGE_MAX_BYTES`: max image upload size for vision input
+- `MAX_REPLY_CHARS`: maximum characters per Discord message chunk (auto-split and continue when exceeded)
 - `TEMPERATURE`: model temperature
 - `MAX_HISTORY`: max short-term conversation turns
 
@@ -116,6 +117,7 @@ Replay logger (bot owner only):
 Bot loads extra rules from `SYSTEM_RULES_JSON` and appends them to system prompt.
 
 - To force a response format, edit `response_form`.
+- To stop LaTeX in math replies, add a rule that requires plain-text math notation.
 - To disable rules temporarily, set `"enabled": false`.
 
 ## 7) Storage Isolation by Cog

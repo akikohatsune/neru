@@ -89,6 +89,7 @@ class MikuAIBot(commands.Bot):
         print(f"Callnames DB: {self.settings.callnames_db_path}")
         print(f"Memory idle TTL: {self.settings.memory_idle_ttl_seconds}s")
         print(f"Image max bytes: {self.settings.image_max_bytes}")
+        print(f"Max reply chars: {self.settings.max_reply_chars}")
 
 
 async def main() -> None:

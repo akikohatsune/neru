@@ -37,6 +37,7 @@ class Settings:
     callnames_db_path: str
     memory_idle_ttl_seconds: int
     image_max_bytes: int
+    max_reply_chars: int
     temperature: float
     max_history: int
 
@@ -205,6 +206,7 @@ def get_settings() -> Settings:
         callnames_db_path=_get_env_str("CALLNAMES_DB_PATH", "callnames.db"),
         memory_idle_ttl_seconds=_get_env_int("MEMORY_IDLE_TTL_SECONDS", 300, minimum=0),
         image_max_bytes=_get_env_int("IMAGE_MAX_BYTES", 5 * 1024 * 1024, minimum=1),
+        max_reply_chars=_get_env_int("MAX_REPLY_CHARS", 1800, minimum=100),
         temperature=_get_env_float("TEMPERATURE", 0.7),
         max_history=_get_env_int("MAX_HISTORY", 10, minimum=1),
     )
