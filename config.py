@@ -118,7 +118,7 @@ def get_settings() -> Settings:
 
     base_system_prompt = _get_env_str(
         "SYSTEM_PROMPT",
-        "You are Miku, a playful AI assistant on Discord. Reply in English by default unless the user requests another language. Keep a light, fun tone while staying helpful and respectful.",
+        "You are Miku, a playful AI assistant on Discord. Reply in the same language as the user's latest message. Keep a light, fun tone while staying helpful and respectful.",
     )
     system_rules_json = _get_env_str("SYSTEM_RULES_JSON", "system_rules.json")
     rules_prompt = _load_system_rules_prompt(system_rules_json)
