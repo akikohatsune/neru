@@ -61,7 +61,7 @@ Edit `.env`:
 - `OPENAI_API_KEY`: required when `LLM_PROVIDER=openai` or `LLM_PROVIDER=chatgpt`
 - `OPENAI_MODEL`: OpenAI/ChatGPT model name (default `gpt-4o-mini`)
 - `SYSTEM_PROMPT`: default Miku personality/instructions
-- `SYSTEM_RULES_JSON`: JSON file for extra system rules
+- `SYSTEM_RULES_MD`: Markdown file for extra system rules
 - `CHAT_REPLAY_LOG_PATH`: replay log file path (default `logger/chat_replay.jsonl`)
 - `CHAT_MEMORY_DB_PATH`: SQLite DB for chat memory
 - `BAN_DB_PATH`: SQLite DB for ban/removeban data
@@ -116,13 +116,12 @@ Replay logger (bot owner only):
 - Approval model must return only `yes` or `no`.
 - The name is saved only when the result is `yes`.
 
-## 6) System Rules JSON
+## 6) System Rules Markdown
 
-Bot loads extra rules from `SYSTEM_RULES_JSON` and appends them to system prompt.
+Bot loads extra rules from `SYSTEM_RULES_MD` and appends them to system prompt.
 
-- To force a response format, edit `response_form`.
+- Keep this file as plain Markdown text with only behavioral rules.
 - To stop LaTeX in math replies, add a rule that requires plain-text math notation.
-- To disable rules temporarily, set `"enabled": false`.
 
 ## 7) Storage Isolation by Cog
 

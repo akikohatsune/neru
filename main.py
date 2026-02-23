@@ -83,7 +83,7 @@ class MikuAIBot(commands.Bot):
         print(f"Model: {self._active_chat_model()}")
         print("Approval provider: gemini (fixed)")
         print(f"Approval model: {self.settings.gemini_approval_model}")
-        print(f"System rules JSON: {self.settings.system_rules_json}")
+        print(f"System rules MD: {self.settings.system_rules_md}")
         print(f"Chat replay log: {self.settings.chat_replay_log_path}")
         print(f"Chat memory DB: {self.settings.chat_memory_db_path}")
         print(f"Ban DB: {self.settings.ban_db_path}")

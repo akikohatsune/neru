@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import base64
-import json
 import mimetypes
 import re
 from collections import deque
@@ -654,9 +653,7 @@ class AIChatCog(commands.Cog):
         return text
 
     def _normalize_model_reply(self, text: str) -> str:
-        answer = self._extract_answer_from_structured_output(text)
-        normalized = answer if answer is not None else text
-        return self._latex_to_plain_math(normalized)
+        return self._latex_to_plain_math(text)
 
     def _latex_to_plain_math(self, text: str) -> str:
         if not text.strip():
@@ -693,32 +690,6 @@ class AIChatCog(commands.Cog):
         out = out.replace("$$", "").replace("$", "")
         out = re.sub(r"\s{2,}", " ", out)
         return out.strip()
-
-    def _extract_answer_from_structured_output(self, text: str) -> str | None:
-        stripped = text.strip()
-        if not stripped:
-            return None
-
-        # Accept JSON directly or wrapped in ```json ... ``` fences.
-        fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", stripped, flags=re.DOTALL)
-        candidate = fenced.group(1).strip() if fenced else stripped
-
-        decoder = json.JSONDecoder()
-        for idx, char in enumerate(candidate):
-            if char != "{":
-                continue
-            try:
-                data, _ = decoder.raw_decode(candidate[idx:])
-            except json.JSONDecodeError:
-                continue
-            if not isinstance(data, dict):
-                continue
-            answer = data.get("answer")
-            if isinstance(answer, str) and answer.strip():
-                return answer.strip()
-
-        return None
-
 
 async def setup(bot: commands.Bot) -> None:
     settings = cast(Settings, getattr(bot, "settings"))

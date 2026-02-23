@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -33,7 +32,7 @@ class Settings:
     openai_api_key: str | None
     openai_model: str
     system_prompt: str
-    system_rules_json: str
+    system_rules_md: str
     chat_replay_log_path: str
     chat_memory_db_path: str
     ban_db_path: str
@@ -92,26 +91,19 @@ def _load_system_rules_prompt(path_value: str) -> str:
         return ""
 
     try:
-        raw = path.read_text(encoding="utf-8")
-        data = json.loads(raw)
+        rules_md = path.read_text(encoding="utf-8").strip()
     except OSError as exc:
         raise ValueError(f"Cannot read system rules file: {path}") from exc
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"Invalid JSON in system rules file: {path}") from exc
 
-    if not isinstance(data, dict):
-        raise ValueError(f"System rules JSON must be an object: {path}")
-
-    if data.get("enabled", True) is False:
+    if not rules_md:
         return ""
 
-    serialized = json.dumps(data, ensure_ascii=False, indent=2)
     return (
-        "You must follow these extra system rules loaded from JSON.\n"
-        "If response_form exists, obey it exactly.\n"
+        "You must follow these extra system rules loaded from Markdown.\n"
+        "Treat every rule as mandatory behavior.\n"
         f"Rules source: {path}\n"
-        "Rules JSON:\n"
-        f"{serialized}"
+        "Rules Markdown:\n"
+        f"{rules_md}"
     )
 
 
@@ -130,8 +122,8 @@ def get_settings() -> Settings:
         "SYSTEM_PROMPT",
         "You are Miku, a playful AI assistant on Discord. Default to English unless the user explicitly asks for another language. Keep a light, fun tone while staying helpful and respectful.",
     )
-    system_rules_json = _get_env_str("SYSTEM_RULES_JSON", "system_rules.json")
-    rules_prompt = _load_system_rules_prompt(system_rules_json)
+    system_rules_md = _get_env_str("SYSTEM_RULES_MD", "system_rules.md")
+    rules_prompt = _load_system_rules_prompt(system_rules_md)
     full_system_prompt = (
         f"{base_system_prompt}\n\n{rules_prompt}" if rules_prompt else base_system_prompt
     )
@@ -211,7 +203,7 @@ def get_settings() -> Settings:
         openai_api_key=openai_api_key,
         openai_model=openai_model,
         system_prompt=full_system_prompt,
-        system_rules_json=system_rules_json,
+        system_rules_md=system_rules_md,
         chat_replay_log_path=_get_env_str(
             "CHAT_REPLAY_LOG_PATH",
             "logger/chat_replay.jsonl",
