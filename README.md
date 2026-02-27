@@ -138,6 +138,14 @@ Call-name profile:
   run `./scripts/bootstrap-luvit.sh`, then `./lit install`.
 - `./lit: No such file or directory`:
   you are likely in the wrong directory; first `pwd`, then `cd` to project root and re-run bootstrap.
+- `module 'lsqlite3' not found`:
+  install SQLite runtime deps, then install Lua module for Lua 5.1/LuaJIT:
+
+  ```bash
+  sudo apt update
+  sudo apt install -y build-essential libsqlite3-dev luarocks
+  sudo luarocks --lua-version=5.1 install lsqlite3
+  ```
 - `Permission denied` in WSL:
   run `chmod +x scripts/bootstrap-luvit.sh scripts/build-binary.sh`.
 - `Missing DISCORD_TOKEN` or provider key errors:
