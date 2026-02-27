@@ -1,4 +1,10 @@
-# Neru 
+<h1 align="center">Neru</h1>
+
+<p align="center">
+  <img src="neru.jpg" alt="neru" width="360">
+</p> 
+
+---
 
 Neru is a Discord AI bot rewritten to Lua/Luvit and packaged for binary-first deployment.
 Legacy Python runtime has been removed.
