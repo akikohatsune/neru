@@ -1,4 +1,4 @@
-# Neru (Lua Binary Discord Bot)
+# Neru 
 
 Neru is a Discord AI bot rewritten to Lua/Luvit and packaged for binary-first deployment.
 Legacy Python runtime has been removed.
