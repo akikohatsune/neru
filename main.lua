@@ -686,9 +686,50 @@ local function handle_command(message, command_name, args)
   return false
 end
 
+local function extract_command_with_fallback(content)
+  local command_name, args = Utils.extract_prefixed_command(content, settings.command_prefix)
+  if command_name then
+    return command_name, args
+  end
+  if settings.command_prefix ~= '!' then
+    return Utils.extract_prefixed_command(content, '!')
+  end
+  return nil, nil
+end
+
+local function is_reply_to_bot(message)
+  if not message then
+    return false
+  end
+
+  local referenced = message.referencedMessage
+  if referenced and referenced.author and referenced.author.id then
+    return tostring(referenced.author.id) == tostring(client.user.id)
+  end
+
+  local reference = message.reference or message.messageReference
+  if not reference then
+    return false
+  end
+
+  local reference_id = reference.message or reference.messageId or reference.id
+  if not reference_id or not message.channel or not message.channel.getMessage then
+    return false
+  end
+
+  local ok, reply_target = pcall(function()
+    return message.channel:getMessage(reference_id)
+  end)
+  if not ok or not reply_target or not reply_target.author or not reply_target.author.id then
+    return false
+  end
+  return tostring(reply_target.author.id) == tostring(client.user.id)
+end
+
 client:on('ready', function()
   set_presence()
   print('Logged in as ' .. tostring(client.user.tag) .. ' (ID: ' .. tostring(client.user.id) .. ')')
+  print('Command prefix: ' .. settings.command_prefix .. ' (also accepts !)')
   print('Provider: ' .. settings.provider)
   print('Model: ' .. active_chat_model())
   print('Approval provider: gemini (fixed)')
@@ -716,16 +757,18 @@ client:on('messageDeleteUncached', function(channel, id)
 end)
 
 client:on('messageCreate', function(message)
-  if not message or not message.content then
+  if not message then
     return
   end
+
+  local content = tostring(message.content or '')
 
   if is_deleted(message.id) then
     return
   end
 
   local inline_pattern = '^' .. settings.command_prefix:gsub('(%W)', '%%%1') .. 'replayneru(%d+)$'
-  local replay_id = Utils.trim(message.content):match(inline_pattern)
+  local replay_id = Utils.trim(content):match(inline_pattern)
   if replay_id and not message.author.bot then
     if not is_owner(message.author.id) then
       send_reply(message, 'Only the bot owner can use this command.')
@@ -736,7 +779,7 @@ client:on('messageCreate', function(message)
     return
   end
 
-  local command_name, args = Utils.extract_prefixed_command(message.content, settings.command_prefix)
+  local command_name, args = extract_command_with_fallback(content)
   if command_name then
     local handled = handle_command(message, command_name, args or '')
     if handled then
@@ -759,9 +802,14 @@ client:on('messageCreate', function(message)
 
   local mention_plain = '<@' .. tostring(client.user.id) .. '>'
   local mention_nick = '<@!' .. tostring(client.user.id) .. '>'
-  if message.content:find(mention_plain, 1, true) or message.content:find(mention_nick, 1, true) then
-    local mention_text = message.content:gsub(mention_plain, ''):gsub(mention_nick, '')
+  if content:find(mention_plain, 1, true) or content:find(mention_nick, 1, true) then
+    local mention_text = content:gsub(mention_plain, ''):gsub(mention_nick, '')
     run_chat_and_reply(message, mention_text, 'hi', 'mention')
+    return
+  end
+
+  if is_reply_to_bot(message) then
+    run_chat_and_reply(message, content, 'hi', 'reply')
   end
 end)
 

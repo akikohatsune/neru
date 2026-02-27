@@ -98,11 +98,19 @@ Advanced:
 
 ## Commands (prefix default: `!`)
 
+Command prefix is configurable via `.env` (`COMMAND_PREFIX`).
+Examples:
+
+- If `COMMAND_PREFIX=!` -> `!chat hello`
+- If `COMMAND_PREFIX=neru!` -> `neru!chat hello`
+- `!` is also accepted as compatibility fallback.
+
 Chat:
 
 - `!chat <text>`
 - `!ask <text>` (alias)
 - Mention the bot: `@Neru <text>`
+- Reply to a bot message (without mention/command) also triggers chat.
 
 Memory/runtime:
 
