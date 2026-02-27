@@ -32,14 +32,21 @@ Defaults are configured in `.env.example`:
 - `CALLNAMES_DB_PATH=storage/db/callnames.db`
 - `CHAT_REPLAY_LOG_PATH=storage/log/chat_replay.jsonl`
 
-## Quick start (WSL recommended)
+## Linux/WSL tutorial (fresh clone)
 
-From the project root (not `~`):
+Clone and enter project directory:
 
 ```bash
-cd /mnt/c/Users/komekokomi/Desktop/Neru
-chmod +x lit luvi luvit scripts/build-binary.sh
+git clone https://github.com/akikohatsune/neru.git neru
+cd neru
+```
+
+Then run setup from the project root (not `~`):
+
+```bash
+chmod +x scripts/bootstrap-luvit.sh scripts/build-binary.sh
 cp .env.example .env
+./scripts/bootstrap-luvit.sh
 ./lit install
 ./luvit main.lua
 ```
@@ -72,8 +79,22 @@ Windows native (`neru.exe`):
 .\neru.exe
 ```
 
-If you use the bundled `lit/luvi/luvit` files from this repo, they are Linux ELF binaries, so build/run them in WSL.
+If you bootstrap `lit/luvi/luvit` inside WSL/Linux, they are Linux ELF binaries, so build/run them in WSL.
 For native Windows `.exe`, use Windows-native `lit/luvi` binaries.
+
+## Dependency bootstrap (lit/luvi/luvit)
+
+`lit`, `luvi`, `luvit` are local toolchain files and may not exist after fresh clone.
+Use:
+
+```bash
+./scripts/bootstrap-luvit.sh
+```
+
+Advanced:
+
+- Force re-download/rebuild: `./scripts/bootstrap-luvit.sh --force`
+- Pin versions with env vars: `LUVI_VERSION=2.14.0 LIT_VERSION=3.8.5 ./scripts/bootstrap-luvit.sh`
 
 ## Commands (prefix default: `!`)
 
@@ -112,11 +133,13 @@ Call-name profile:
 ## Troubleshooting
 
 - `luvit: command not found`:
-  use `./luvit main.lua` from project root.
+  run `./scripts/bootstrap-luvit.sh`, then `./luvit main.lua`.
 - `lit: command not found`:
-  use `./lit install` from project root.
+  run `./scripts/bootstrap-luvit.sh`, then `./lit install`.
+- `./lit: No such file or directory`:
+  you are likely in the wrong directory; first `pwd`, then `cd` to project root and re-run bootstrap.
 - `Permission denied` in WSL:
-  run `chmod +x lit luvi luvit scripts/build-binary.sh`.
+  run `chmod +x scripts/bootstrap-luvit.sh scripts/build-binary.sh`.
 - `Missing DISCORD_TOKEN` or provider key errors:
   check `.env` values.
 
