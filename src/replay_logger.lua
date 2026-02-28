@@ -40,6 +40,25 @@ function ReplayLogger:log_chat(record)
   self.next_id = self.next_id + 1
 end
 
+function ReplayLogger:log_error(record)
+  local payload = {
+    type = 'error',
+    ts_utc = utils.now_iso_utc(),
+    guild_id = record.guild_id,
+    guild_name = record.guild_name,
+    channel_id = record.channel_id,
+    channel_name = record.channel_name,
+    user_id = record.user_id,
+    user_name = record.user_name,
+    user_display = record.user_display,
+    trigger = record.trigger,
+    prompt = tostring(record.prompt or ''):sub(1, 600),
+    error = tostring(record.error or ''):sub(1, 2000),
+  }
+  local line = json.encode(payload)
+  utils.append_file(self.log_path, line .. '\n')
+end
+
 function ReplayLogger:_iter_records(guild_id)
   local raw = utils.read_file(self.log_path)
   local records = {}

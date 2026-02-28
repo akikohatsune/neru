@@ -358,7 +358,7 @@ local function memory_user_entry(prompt, image_count)
   return prompt .. '\n[attached_images=' .. tostring(image_count) .. ']'
 end
 
-local function run_chat_and_reply(message, prompt, fallback_prompt, trigger)
+local function run_chat_and_reply_impl(message, prompt, fallback_prompt, trigger)
   if is_deleted(message.id) then
     return
   end
@@ -385,16 +385,7 @@ local function run_chat_and_reply(message, prompt, fallback_prompt, trigger)
   })
 
   message.channel:broadcastTyping()
-
-  local ok, reply_or_err = pcall(function()
-    return llm:generate(llm_messages)
-  end)
-  if not ok then
-    send_reply(message, 'Error while calling AI: `' .. tostring(reply_or_err) .. '`')
-    return
-  end
-
-  local reply = normalize_model_reply(reply_or_err)
+  local reply = normalize_model_reply(llm:generate(llm_messages))
 
   chat_store:append_message(channel_id, 'user', memory_user_entry(effective_prompt, #images))
   chat_store:append_message(channel_id, 'assistant', reply)
@@ -418,6 +409,44 @@ local function run_chat_and_reply(message, prompt, fallback_prompt, trigger)
     return
   end
   send_long_message(message, reply)
+end
+
+local function run_chat_and_reply(message, prompt, fallback_prompt, trigger)
+  local ok, err = pcall(function()
+    run_chat_and_reply_impl(message, prompt, fallback_prompt, trigger)
+  end)
+  if ok then
+    return
+  end
+
+  local effective_prompt = normalize_prompt(prompt, fallback_prompt)
+  local guild_id = message.guild and message.guild.id or nil
+  local guild_name = message.guild and message.guild.name or nil
+  local channel_name = message.channel and message.channel.name or nil
+  local user_display = message.member and message.member.nickname or message.author.username
+
+  local log_ok, log_err = pcall(function()
+    replay_logger:log_error({
+      guild_id = guild_id,
+      guild_name = guild_name,
+      channel_id = message.channel.id,
+      channel_name = channel_name,
+      user_id = message.author.id,
+      user_name = message.author.username,
+      user_display = user_display,
+      trigger = trigger,
+      prompt = effective_prompt,
+      error = tostring(err),
+    })
+  end)
+  if not log_ok then
+    print('[chat] failed to log error: ' .. tostring(log_err))
+  end
+
+  print('[chat] run_chat_and_reply failed: ' .. tostring(err))
+  if not is_deleted(message.id) then
+    send_reply(message, 'i overload!')
+  end
 end
 
 local function maybe_cleanup_memory()
